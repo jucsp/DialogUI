@@ -1299,9 +1299,18 @@
             <OnHide>
                 DQuestFrame_OnHide();
             </OnHide>
+            <OnKeyDown>
+                DQuestFrame_OnKeyDown();
+            </OnKeyDown>
             <OnMouseWheel>
                 return;
             </OnMouseWheel>
+            <OnMouseDown>
+                DQuestFrame_OnMouseDown();
+            </OnMouseDown>
+            <OnMouseUp>
+                DQuestFrame_OnMouseUp();
+            </OnMouseUp>
         </Scripts>
     </Frame>
 </Ui>

@@ -22,6 +22,11 @@ function HideDefaultFrames()
     GossipFrameCloseButton:Hide()
     GossipFramePortrait:Hide()
     GossipFramePortrait:SetTexture()
+    
+    -- Hide additional elements that might interfere
+    if GossipFrameCloseButton then
+        GossipFrameCloseButton:Hide()
+    end
 end
 
 
@@ -29,6 +34,11 @@ function DGossipFrame_OnLoad()
     HideDefaultFrames()
     this:RegisterEvent("GOSSIP_SHOW");
     this:RegisterEvent("GOSSIP_CLOSED");
+    this:RegisterEvent("VARIABLES_LOADED");
+    
+    -- Enable dragging for the gossip frame
+    this:SetMovable(true);
+    this:EnableMouse(true);
     
     -- Create simplified key handler frame
     if not DGossipKeyFrame then
@@ -42,6 +52,17 @@ function DGossipFrame_OnLoad()
 end
 
 function DGossipFrame_OnEvent()
+    if (event == "VARIABLES_LOADED") then
+        -- Load saved position for gossip frame
+        if DialogUI_LoadPosition then
+            DialogUI_LoadPosition(DGossipFrame);
+        end
+        -- Load configuration settings
+        if DialogUI_LoadConfig then
+            DialogUI_LoadConfig();
+        end
+        return;
+    end
     if (event == "GOSSIP_SHOW") then
         if (not DGossipFrame:IsVisible()) then
             ShowUIPanel(DGossipFrame);
@@ -51,6 +72,10 @@ function DGossipFrame_OnEvent()
             end
         end
         DGossipFrameUpdate();
+        -- Apply current transparency settings
+        if DialogUI_ApplyAlpha then
+            DialogUI_ApplyAlpha();
+        end
         -- Enable key capture when gossip frame is shown
         DGossipKeyFrame:EnableKeyboard(true)
     elseif (event == "GOSSIP_CLOSED") then
@@ -147,6 +172,24 @@ function DGossipSelectOption(buttonIndex)
     end
     
     -- DEFAULT_CHAT_FRAME:AddMessage("No button found for number " .. buttonIndex)
+end
+
+-- Functions to handle gossip frame movement
+function DGossipFrame_OnMouseDown()
+    -- Simple and direct approach for WoW vanilla
+    if (arg1 == "LeftButton") then
+        this:StartMoving();
+    end
+end
+
+function DGossipFrame_OnMouseUp()
+    this:StopMovingOrSizing();
+    -- Save the new position using unified system 
+    DialogUI_SavePosition();
+    -- Immediately apply the new position to the quest frame if it exists
+    if DQuestFrame then
+        DialogUI_LoadPosition(DQuestFrame);
+    end
 end
 
 -- Direct button click function for debugging
@@ -407,7 +450,7 @@ function DGossipFrameOptionsUpdate(...)
         gossipIcon:Show()
         
         if not gossipIcon:GetTexture() then
-            DEFAULT_CHAT_FRAME:AddMessage("Texture failed to load: " .. texturePath .. ", using fallback")
+            -- DEFAULT_CHAT_FRAME:AddMessage("Texture failed to load: " .. texturePath .. ", using fallback")
             gossipIcon:SetTexture("Interface\\AddOns\\DialogUI\\src\\assets\\art\\icons\\petitionGossipIcon");
         end
         
@@ -486,5 +529,41 @@ function ClearAllGossipIcons()
                 gossipIcon:Hide()
             end
         end
+    end
+end
+
+-- Unified DialogUI position functions (duplicate from quest.frame.lua to ensure availability)
+function DialogUI_SavePosition()
+    if not DialogUIFramePosition then
+        DialogUIFramePosition = {};
+    end
+    
+    -- Save position from whichever frame is currently being moved
+    local frame = this or DGossipFrame or DQuestFrame;
+    if not frame then return; end
+    
+    local point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint();
+    DialogUIFramePosition.point = point;
+    DialogUIFramePosition.relativePoint = relativePoint;
+    DialogUIFramePosition.xOfs = xOfs;
+    DialogUIFramePosition.yOfs = yOfs;
+    
+    -- Also update the old variable for backward compatibility
+    DQuestFramePosition = DialogUIFramePosition;
+end
+
+function DialogUI_LoadPosition(frame)
+    -- Check both new and old variable names for backward compatibility
+    local position = DialogUIFramePosition or DQuestFramePosition;
+    
+    if position and position.point and frame then
+        frame:ClearAllPoints();
+        frame:SetPoint(
+            position.point, 
+            UIParent, 
+            position.relativePoint or position.point, 
+            position.xOfs or 0, 
+            position.yOfs or -104
+        );
     end
 end

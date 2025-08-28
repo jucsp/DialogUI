@@ -1,63 +1,144 @@
-# DialogUI
+# 📜 DialogUI Enhanced
 
-Hi! this addon was made with the sole purpose of learning how to make wow addOns. This newer version uses Blizzard original code with some tweaks to properly handle icons natively, that's right, you read it right, now the gossip shows the icons that represent the option.
+> **A beautiful, enhanced fork of the original DialogUI addon**
 
-This should work with vanilla client or custom one like Turtle-WoW.
+**DialogUI Enhanced** is an improved fork of the original [DialogUI addon](https://github.com/Jslquintero/DialogUI) that transforms World of Warcraft's quest and gossip dialogs with a stunning parchment-themed interface. This fork adds powerful new features while maintaining the beautiful aesthetic that made the original so popular.
 
-<h3>My Gallery</h3>
+## 🌟 What's New in This Fork
 
-![image](https://github.com/user-attachments/assets/e8f119c3-cd0b-42ff-aa83-3d19dd23e76a)
-![image](https://github.com/user-attachments/assets/9182f8e1-173c-4893-974c-781adf200ad1)
-![image](https://github.com/user-attachments/assets/2efac0ce-e4c5-4cf7-8b75-c7eedaedad58)
-![image](https://github.com/user-attachments/assets/85c79713-e84a-45ad-8484-5d586b2220bc)
+This enhanced version builds upon the original DialogUI foundation and adds:
 
-[DialogueUI](https://www.curseforge.com/wow/addons/dialogueui) was obviously the inspiration for this new look.
+- **🎯 Movable Windows** - Drag quest and gossip windows anywhere on screen
+- **💾 Persistent Positioning** - Window positions are saved between game sessions  
+- **⚙️ Advanced Configuration Panel** - Beautiful in-game settings window with:
+  - Scale adjustment (0.5x to 2.0x)
+  - Transparency control (10% to 100%)
+  - Font size scaling (0.5x to 2.0x)
+- **🎨 Unified Parchment Theme** - All windows use consistent papiro aesthetic
+- **⌨️ ESC Key Support** - Press ESC or Decline to close quest windows properly
+- **🖼️ Enhanced Icon System** - Native gossip icons with proper fallback handling
 
-## Reporting an issue
+## 📸 Gallery
 
-Please before reporting any problem please disable all your addons just keep DialogUI active and try again, if the problem persists you are free to post the problem.
+<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+  <img src="https://raw.githubusercontent.com/Jslquintero/DialogUI/main/src/preview/Screenshot%20From%202025-06-18%2000-34-14.png" style="width: 30%; min-width: 200px;" />
+  <img src="https://raw.githubusercontent.com/Jslquintero/DialogUI/main/src/preview/Screenshot%20From%202025-06-18%2000-34-24.png" style="width: 30%; min-width: 200px;" />
+  <img src="https://raw.githubusercontent.com/Jslquintero/DialogUI/main/src/preview/Screenshot%20From%202025-06-18%2000-34-35.png" style="width: 30%; min-width: 200px;" />
+  <img src="https://raw.githubusercontent.com/Jslquintero/DialogUI/main/src/preview/Screenshot%20From%202025-06-18%2000-35-57.png" style="width: 30%; min-width: 200px;" />
+  <img src="https://raw.githubusercontent.com/Jslquintero/DialogUI/main/src/preview/Screenshot%20From%202025-06-18%2000-37-32.png" style="width: 30%; min-width: 200px;" />
+  <img src="https://raw.githubusercontent.com/Jslquintero/DialogUI/main/src/preview/Screenshot%20From%202025-06-18%2000-37-38.png" style="width: 30%; min-width: 200px;" />
+  <img src="https://raw.githubusercontent.com/Jslquintero/DialogUI/main/src/preview/Screenshot%20From%202025-06-18%2000-41-14.png" style="width: 30%; min-width: 200px;" />
+  <img src="https://raw.githubusercontent.com/Jslquintero/DialogUI/main/src/preview/Screenshot%20From%202025-06-18%2000-42-06.png" style="width: 30%; min-width: 200px;" />
+</div>
 
-### How to report an issue?
+## ⚡ Quick Start
 
-[issues page](https://github.com/Jslquintero/DialogUI/issues/new)
+1. **Install**: Extract to your `Interface/AddOns/` folder
+2. **Enable**: Activate "DialogUI" in your addon list
+3. **Configure**: Use `/dialogui` in chat to open settings
+4. **Enjoy**: Beautiful, movable quest and gossip windows!
 
-# Customize it!
+## 🎮 Commands
 
-Feel free to add/remove icons or change the frame background completely, every image is now Truevision Graphics Adapter (TGA) format.
+| Command | Description |
+|---------|-------------|
+| `/dialogui` | Open configuration window |
+| `/resetdialogs` | Reset all window positions |
+| `/debugdialogs` | Show debug information |
 
-I recommend using Gimp 3 with [Batcher](https://kamilburda.github.io/batcher/) to quickly export your new files.
+## 🔧 Compatibility
 
-To change the gossip icons you can go to :
+- ✅ **Vanilla WoW** (1.12.1)
+- ✅ **Turtle WoW** (Custom client)
+- ✅ **Classic Era** servers
+- ⚠️ Designed for English client (Spanish support can be added by editing gossip functions)
 
-> DialogUI/src/assets/art/icons/GossipIcons.xcf
+## 🎨 Original Inspiration
 
-To change the style of the buttons or of the frame :
+This addon was inspired by [DialogueUI](https://www.curseforge.com/wow/addons/dialogueui) and uses enhanced Blizzard original code with native icon handling.
 
-> DialogUI/src/assets/art/parchment/ParchmentLayout.xcf
+## 📋 About This Fork
+
+This is an **enhanced fork** of the original [DialogUI by Jslquintero](https://github.com/Jslquintero/DialogUI). The original author created an excellent foundation for learning WoW addon development. This fork aims to contribute new features and improvements back to the community while maintaining the beautiful parchment aesthetic that makes DialogUI special.
+
+**Original Author**: [Jslquintero](https://github.com/Jslquintero)  
+**Fork Maintainer**: [Your GitHub Username]  
+**Original Repository**: https://github.com/Jslquintero/DialogUI
+
+## 🐛 Reporting Issues
+
+## 🐛 Reporting Issues
+
+**Before reporting any issue:**
+1. Disable all other addons
+2. Keep only DialogUI active  
+3. Test if the problem persists
+4. If it does, please report it!
+
+### How to Report
+
+- **Original DialogUI Issues**: [Original Repository Issues](https://github.com/Jslquintero/DialogUI/issues/new)
+- **Enhanced Fork Issues**: [This Fork's Issues](https://github.com/jucsp/DialogUI/issues/new)
+
+Please specify which version you're using and include any error messages or screenshots.
+
+## 🎨 Customization
+
+Feel free to customize the look completely! Every image is in **TGA format** for easy editing.
+
+### 🖼️ Customize Icons
+Edit gossip icons at:
+```
+DialogUI/src/assets/art/icons/GossipIcons.xcf
+```
+
+### 🎨 Customize Frame Style  
+Edit button styles and frame backgrounds at:
+```
+DialogUI/src/assets/art/parchment/ParchmentLayout.xcf
+```
+
+### 🛠️ How to Edit
+
+1. **Add/Remove Icons**: All gossip icons are individual TGA files in `/src/assets/art/icons/`
+2. **Change Frame Background**: Edit the parchment textures and button styles
+3. **Export Process**: Use GIMP 3 with [Batcher plugin](https://kamilburda.github.io/batcher/) for quick TGA batch export
+
+**Recommended Tools:**
+- **GIMP 3** with [Batcher plugin](https://kamilburda.github.io/batcher/) for batch TGA export
+- Any image editor that supports TGA format
+
+**File Format**: All images must be in **Truevision Graphics Adapter (TGA)** format to work properly in WoW.
 
 ---
 
-# Español
+## 🌍 Español
 
-¡Hola! este addon fue hecho con la unica intención de aprender como hacer addons. Esta nueva versión utiliza el código original hecho por Blizzard pero se agregan algunas mejoras para poder mostrar los iconos de forma nativa, así es, leíste bien, ahora la ventana de diálogos ahora muestra los iconos representativos de cada opción.
+**DialogUI Enhanced** es una versión mejorada del addon original [DialogUI](https://github.com/Jslquintero/DialogUI) que transforma los diálogos de misiones y conversaciones de World of Warcraft con una hermosa interfaz temática de pergamino.
 
-Debe funcionar con el cliente vanilla o personalizado como Turtle-WoW.
+### ✨ Nuevas Funciones
 
-Pequeña nota:
+- **Ventanas móviles**: Arrastra las ventanas donde quieras
+- **Posiciones persistentes**: Se guardan entre sesiones
+- **Panel de configuración avanzado**: Escala, transparencia y tamaño de fuente
+- **Soporte para tecla ESC**: Cierra ventanas con ESC o Rechazar
+- **Tema unificado**: Todas las ventanas usan el mismo estilo de pergamino
 
-> El addon esta hecho para el cliente en ingles, si deseas
-> eres libre de editarlo para que utilice las opciones en español dentro
-> de la funcion DGossipFrameOptionsUpdate en gossip.frame.lua
+### 🎯 Comandos
 
-[DialogueUI](https://www.curseforge.com/wow/addons/dialogueui) fue obviamente mi inspiración.
+- `/dialogui` - Abrir ventana de configuración
+- `/resetdialogs` - Reiniciar posiciones de ventanas
+- `/debugdialogs` - Mostrar información de debug
 
-## Reportando un problema
+### 📝 Nota Importante
 
-Please before reporting any problem please disable all your addons just keep DialogUI active and try again, if the problem persists you are free to post the problem.
+El addon está optimizado para cliente en inglés. Para usarlo en español, edita las funciones de gossip en `gossip.frame.lua`.
 
-### ¿Cómo reporto un problema?
+---
 
-[página de problemas](https://github.com/Jslquintero/DialogUI/issues/new)
+## 📄 License
+
+This enhanced fork maintains the same spirit of learning and sharing as the original DialogUI project.
 
 # ¡Perzonalizar!
 

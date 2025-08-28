@@ -589,6 +589,12 @@
             <OnMouseWheel>
                 return;
             </OnMouseWheel>
+            <OnMouseDown>
+                DGossipFrame_OnMouseDown();
+            </OnMouseDown>
+            <OnMouseUp>
+                DGossipFrame_OnMouseUp();
+            </OnMouseUp>
         </Scripts>
     </Frame>
 </Ui>
