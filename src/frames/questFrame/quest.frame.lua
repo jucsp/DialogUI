@@ -6,6 +6,15 @@ QUEST_DESCRIPTION_GRADIENT_LENGTH = 30;
 QUEST_DESCRIPTION_GRADIENT_CPS = 40;
 QUESTINFO_FADE_IN = 1;
 
+-- DialogUI Configuration System (initialized here for early availability)
+if not DialogUI_Config then
+    DialogUI_Config = {
+        scale = 1.0,        -- Frame scale (0.5 - 2.0)
+        alpha = 1.0,        -- Frame transparency (0.1 - 1.0)
+        fontSize = 1.0      -- Font size multiplier (0.5 - 2.0)
+    };
+end
+
 local COLORS = {
     -- ColorKey = {r, g, b}
 
@@ -26,18 +35,163 @@ function DQuestFrame_OnLoad()
     this:RegisterEvent("QUEST_COMPLETE");
     this:RegisterEvent("QUEST_FINISHED");
     this:RegisterEvent("QUEST_ITEM_UPDATE");
+    this:RegisterEvent("VARIABLES_LOADED");
+    
+    -- Enable dragging for the quest frame - simplified approach
+    this:SetMovable(true);
+    this:EnableMouse(true);
+    this:EnableKeyboard(true);
+    
+    -- Hook original quest frame functions to prevent them from showing
+    DialogUI_HookOriginalQuestFunctions();
+    
+    -- Register frame with UI Panel system to handle ESC key
+    UIPanelWindows["DQuestFrame"] = {area = "center", pushable = 0, whileDead = 1};
+end
+
+-- Functions to save and load frame position (unified for all DialogUI frames)
+function DialogUI_SavePosition()
+    if not DialogUIFramePosition then
+        DialogUIFramePosition = {};
+    end
+    
+    -- Save position from whichever frame is currently being moved
+    local frame = this or DQuestFrame or DGossipFrame;
+    if not frame then return; end
+    
+    local point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint();
+    DialogUIFramePosition.point = point;
+    DialogUIFramePosition.relativePoint = relativePoint;
+    DialogUIFramePosition.xOfs = xOfs;
+    DialogUIFramePosition.yOfs = yOfs;
+    
+    -- Also update the old variable for backward compatibility
+    DQuestFramePosition = DialogUIFramePosition;
+end
+
+function DialogUI_LoadPosition(frame)
+    -- Check both new and old variable names for backward compatibility
+    local position = DialogUIFramePosition or DQuestFramePosition;
+    
+    if position and position.point and frame then
+        frame:ClearAllPoints();
+        frame:SetPoint(
+            position.point, 
+            UIParent, 
+            position.relativePoint or position.point, 
+            position.xOfs or 0, 
+            position.yOfs or -104
+        );
+    end
+end
+
+function DialogUI_ApplyPositionToAllFrames()
+    -- Apply the saved position to all DialogUI frames
+    if DQuestFrame then
+        DialogUI_LoadPosition(DQuestFrame);
+    end
+    if DGossipFrame then
+        DialogUI_LoadPosition(DGossipFrame);
+    end
+end
+
+-- Legacy functions for backward compatibility
+function DQuestFrame_SavePosition()
+    DialogUI_SavePosition();
+end
+
+function DQuestFrame_LoadPosition()
+    DialogUI_LoadPosition(DQuestFrame);
+end
+
+-- Functions to handle frame movement (unified system)
+function DQuestFrame_OnMouseDown()
+    -- Simple and direct approach for WoW vanilla
+    if (arg1 == "LeftButton") then
+        this:StartMoving();
+    end
+end
+
+function DQuestFrame_OnMouseUp()
+    this:StopMovingOrSizing();
+    -- Save the new position using the unified system
+    DialogUI_SavePosition();
+    -- Immediately apply the new position to the gossip frame if it exists
+    if DGossipFrame then
+        DialogUI_LoadPosition(DGossipFrame);
+    end
 end
 
 function HideDefaultFrames()
-    QuestFrameGreetingPanel:Hide()
-    QuestFrameDetailPanel:Hide()
-    QuestFrameProgressPanel:Hide()
-    QuestFrameRewardPanel:Hide()
-    QuestNpcNameFrame:Hide()
-    QuestFramePortrait:SetTexture()
+    -- Hide the main original quest frame completely
+    if QuestFrame then
+        QuestFrame:Hide();
+    end
+    
+    -- Hide all original quest panels
+    if QuestFrameGreetingPanel then
+        QuestFrameGreetingPanel:Hide();
+    end
+    if QuestFrameDetailPanel then
+        QuestFrameDetailPanel:Hide();
+    end
+    if QuestFrameProgressPanel then
+        QuestFrameProgressPanel:Hide();
+    end
+    if QuestFrameRewardPanel then
+        QuestFrameRewardPanel:Hide();
+    end
+    if QuestNpcNameFrame then
+        QuestNpcNameFrame:Hide();
+    end
+    if QuestFramePortrait then
+        QuestFramePortrait:SetTexture();
+    end
+    
+    -- Hide the original close button
+    if QuestFrameCloseButton then
+        QuestFrameCloseButton:Hide();
+    end
+end
+
+-- Function to ensure original frames stay hidden while our frame is visible
+function DialogUI_EnsureOriginalQuestHidden()
+    -- Hide the original quest frame if it exists
+    local questFrame = getglobal("QuestFrame");
+    if questFrame then
+        questFrame:Hide();
+    end
+end
+
+-- Function to hook original WoW quest functions to prevent them from showing  
+function DialogUI_HookOriginalQuestFunctions()
+    -- Simple approach: just make sure to hide the original frame frequently
+    
+    -- Hook CloseWindows to handle ESC for our frame
+    if not DialogUI_OriginalCloseWindows then
+        DialogUI_OriginalCloseWindows = CloseWindows;
+        CloseWindows = function()
+            -- If our quest frame is visible, close it
+            if DQuestFrame and DQuestFrame:IsVisible() then
+                HideUIPanel(DQuestFrame);
+                return 1; -- Return 1 to indicate we handled a window
+            end
+            -- Otherwise, call the original function
+            return DialogUI_OriginalCloseWindows();
+        end;
+    end
 end
 
 function DQuestFrame_OnEvent(event)
+    if (event == "VARIABLES_LOADED") then
+        -- Load saved position when variables are loaded and apply to all frames
+        DialogUI_ApplyPositionToAllFrames();
+        -- Load configuration settings
+        DialogUI_LoadConfig();
+        -- Hide default frames from the start
+        HideDefaultFrames();
+        return;
+    end
     if (event == "QUEST_FINISHED") then
         HideUIPanel(DQuestFrame);
         return;
@@ -46,19 +200,31 @@ function DQuestFrame_OnEvent(event)
         return;
     end
 
-    HideDefaultFrames();
     DQuestFrame_SetPortrait();
-    ShowUIPanel(DQuestFrame);
-    if (not DQuestFrame:IsVisible()) then
-        CloseQuest();
-        return;
-    end
+    DQuestFrame:Show();
+    DQuestFrame:SetAlpha(1); -- Ensure frame is fully visible
+    
+    -- Ensure position is applied
+    DialogUI_LoadPosition(DQuestFrame);
+    
+    HideDefaultFrames();
+    DialogUI_EnsureOriginalQuestHidden();
+    -- Don't check DQuestFrame:IsVisible() here as it might not be accurate
+    -- The individual panels will handle their own visibility
     if (event == "QUEST_GREETING") then
         DQuestFrameGreetingPanel:Hide();
         DQuestFrameGreetingPanel:Show();
     elseif (event == "QUEST_DETAIL") then
         DQuestFrameDetailPanel:Hide();
         DQuestFrameDetailPanel:Show();
+        
+        -- Ensure panel is fully visible
+        if not DQuestFrameDetailPanel:IsVisible() then
+            DQuestFrameDetailPanel:SetAlpha(1);
+            DQuestFrameDetailPanel:Show();
+            DQuestFrame:SetAlpha(1);
+            DQuestFrame:Show();
+        end;
     elseif (event == "QUEST_PROGRESS") then
         DQuestFrameProgressPanel:Hide();
         DQuestFrameProgressPanel:Show();
@@ -96,6 +262,7 @@ function DQuestFrameRewardPanel_OnShow()
     DQuestFrameGreetingPanel:Hide();
     DQuestFrameProgressPanel:Hide();
     HideDefaultFrames();
+    DialogUI_EnsureOriginalQuestHidden();
     DQuestFrameNpcNameText:SetText(GetTitleText());
     DQuestRewardText:SetText(GetRewardText());
     SetFontColor(DQuestFrameNpcNameText, "DarkBrown");
@@ -167,6 +334,7 @@ function DQuestFrameProgressPanel_OnShow()
     DQuestFrameDetailPanel:Hide();
     DQuestFrameGreetingPanel:Hide();
     HideDefaultFrames();
+    DialogUI_EnsureOriginalQuestHidden();
     DQuestFrameNpcNameText:SetText(GetTitleText());
     DQuestProgressText:SetText(GetProgressText());
     SetFontColor(DQuestFrameNpcNameText, "DarkBrown");
@@ -383,6 +551,14 @@ end
 
 function DQuestFrame_OnShow()
     PlaySound("igQuestListOpen");
+    -- Ensure the frame can receive keyboard input
+    DQuestFrame:EnableKeyboard(true);
+    -- Set focus to the frame so it receives ESC key events
+    DQuestFrame:SetFocus();
+    -- Apply current transparency settings
+    if DialogUI_ApplyAlpha then
+        DialogUI_ApplyAlpha();
+    end
 end
 
 function DQuestFrame_OnHide()
@@ -622,9 +798,19 @@ function DQuestFrameDetailPanel_OnShow()
     DQuestFrameProgressPanel:Hide();
     DQuestFrameGreetingPanel:Hide();
     HideDefaultFrames();
-    DQuestFrameNpcNameText:SetText(GetTitleText());
-    DQuestDescription:SetText(GetQuestText());
-    DQuestObjectiveText:SetText(GetObjectiveText());
+    DialogUI_EnsureOriginalQuestHidden();
+    
+    -- Set text with safety checks
+    if GetTitleText and DQuestFrameNpcNameText then
+        DQuestFrameNpcNameText:SetText(GetTitleText());
+    end
+    if GetQuestText and DQuestDescription then
+        DQuestDescription:SetText(GetQuestText());
+    end
+    if GetObjectiveText and DQuestObjectiveText then
+        DQuestObjectiveText:SetText(GetObjectiveText());
+    end
+    
     SetFontColor(DQuestFrameNpcNameText, "DarkBrown");
     SetFontColor(DQuestDescription, "DarkBrown");
     SetFontColor(DQuestObjectiveText, "DarkBrown");
@@ -669,6 +855,28 @@ end
 function DQuestDetailDeclineButton_OnClick()
     DeclineQuest();
     PlaySound("igQuestCancel");
+    -- Close the quest frame after declining
+    HideUIPanel(DQuestFrame);
+end
+
+-- Function to handle closing the quest frame
+function DQuestFrame_OnHide()
+    -- Save position when the frame closes
+    DialogUI_SavePosition();
+    -- Clear any quest-related data if needed
+end
+
+-- Function that gets called when ESC is pressed
+function DQuestFrame_OnCancel()
+    -- This gets called when ESC is pressed on the frame
+    HideUIPanel(DQuestFrame);
+end
+
+-- Function to handle key presses
+function DQuestFrame_OnKeyDown()
+    if arg1 == "ESCAPE" then
+        HideUIPanel(DQuestFrame);
+    end
 end
 
 
@@ -703,4 +911,216 @@ local originalOnShow = DQuestFrameGreetingPanel_OnShow;
 DQuestFrameGreetingPanel_OnShow = function()
     originalOnShow();
     UpdateQuestIcons();
+end
+
+-- Function to reset frame position to default (unified)
+function DialogUI_ResetPosition()
+    DialogUIFramePosition = nil;
+    DQuestFramePosition = nil; -- Also clear old variable
+    
+    -- Reset all frames to default position
+    if DQuestFrame then
+        DQuestFrame:ClearAllPoints();
+        DQuestFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, -104);
+    end
+    if DGossipFrame then
+        DGossipFrame:ClearAllPoints();
+        DGossipFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, -104);
+    end
+    
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: All frame positions reset to default.");
+end
+
+-- Legacy function for backward compatibility
+function DQuestFrame_ResetPosition()
+    DialogUI_ResetPosition();
+end
+
+-- Function to debug frame state (unified for all DialogUI frames)
+function DialogUI_DebugState()
+    -- Show saved position
+    local position = DialogUIFramePosition or DQuestFramePosition;
+    if position then
+        DEFAULT_CHAT_FRAME:AddMessage("Saved Position: (" .. (position.xOfs or 0) .. ", " .. (position.yOfs or 0) .. ")");
+    else
+        DEFAULT_CHAT_FRAME:AddMessage("No saved position found");
+    end
+    
+    -- Quest Frame
+    if DQuestFrame then
+        local movable = DQuestFrame:IsMovable() and "YES" or "NO";
+        local mouseEnabled = DQuestFrame:IsMouseEnabled() and "YES" or "NO";
+        local visible = DQuestFrame:IsVisible() and "YES" or "NO";
+        
+        DEFAULT_CHAT_FRAME:AddMessage("Quest Frame: Movable=" .. movable .. ", Mouse=" .. mouseEnabled .. ", Visible=" .. visible);
+    end
+    
+    -- Gossip Frame
+    if DGossipFrame then
+        local movable = DGossipFrame:IsMovable() and "YES" or "NO";
+        local mouseEnabled = DGossipFrame:IsMouseEnabled() and "YES" or "NO";
+        local visible = DGossipFrame:IsVisible() and "YES" or "NO";
+        
+        DEFAULT_CHAT_FRAME:AddMessage("Gossip Frame: Movable=" .. movable .. ", Mouse=" .. mouseEnabled .. ", Visible=" .. visible);
+    end
+end
+
+-- Legacy function for backward compatibility
+function DQuestFrame_DebugState()
+    DialogUI_DebugState();
+end
+
+-- Commands to reset position and debug (can be used in chat)
+SlashCmdList["DIALOGUI_RESET"] = DialogUI_ResetPosition;
+SLASH_DIALOGUI_RESET1 = "/resetdialogs";
+SLASH_DIALOGUI_RESET2 = "/resetquest";
+SLASH_DIALOGUI_RESET3 = "/questframereset";
+
+SlashCmdList["DIALOGUI_DEBUG"] = DialogUI_DebugState;
+SLASH_DIALOGUI_DEBUG1 = "/debugquest";
+SLASH_DIALOGUI_DEBUG2 = "/debugdialogs";
+
+-- Configuration functions and commands (moved here to ensure they're available)
+function DialogUI_ShowConfig()
+    if DConfigFrame then
+        ShowUIPanel(DConfigFrame);
+    else
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Configuration window not available yet. Try /reload.");
+    end
+end
+
+function DialogUI_HideConfig()
+    if DConfigFrame then
+        HideUIPanel(DConfigFrame);
+    end
+end
+
+function DialogUI_ToggleConfig()
+    if DConfigFrame then
+        if DConfigFrame:IsVisible() then
+            DialogUI_HideConfig();
+        else
+            DialogUI_ShowConfig();
+        end
+    else
+        DialogUI_ShowConfig(); -- This will show the error message
+    end
+end
+
+-- Configuration commands
+SlashCmdList["DIALOGUI_CONFIG"] = DialogUI_ToggleConfig;
+SLASH_DIALOGUI_CONFIG1 = "/dialogui";
+SLASH_DIALOGUI_CONFIG2 = "/dialogconfig";
+SLASH_DIALOGUI_CONFIG3 = "/dconfig";
+
+-- Add command for opening configuration (additional alias)
+SlashCmdList["DIALOGUI_SETTINGS"] = DialogUI_ToggleConfig;
+SLASH_DIALOGUI_SETTINGS1 = "/dialogsettings";
+
+-- Debug command to test quest frame visibility
+function DialogUI_TestQuestFrame()
+    if DQuestFrame then
+        DQuestFrame:Show();
+        HideDefaultFrames();
+        
+        -- Try to show a simple panel
+        if DQuestFrameGreetingPanel then
+            DQuestFrameGreetingPanel:Show();
+        end
+    else
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: ERROR - DQuestFrame does not exist!");
+    end
+end
+
+SlashCmdList["DIALOGUI_TEST"] = DialogUI_TestQuestFrame;
+SLASH_DIALOGUI_TEST1 = "/dtest";
+
+-- Basic configuration functions (fallback implementations)
+function DialogUI_LoadConfig()
+    if DialogUI_SavedConfig then
+        DialogUI_Config.scale = DialogUI_SavedConfig.scale or 1.0;
+        DialogUI_Config.alpha = DialogUI_SavedConfig.alpha or 1.0;
+        DialogUI_Config.fontSize = DialogUI_SavedConfig.fontSize or 1.0;
+    end
+end
+
+function DialogUI_SaveConfig()
+    if not DialogUI_SavedConfig then
+        DialogUI_SavedConfig = {};
+    end
+    
+    DialogUI_SavedConfig.scale = DialogUI_Config.scale;
+    DialogUI_SavedConfig.alpha = DialogUI_Config.alpha;
+    DialogUI_SavedConfig.fontSize = DialogUI_Config.fontSize;
+end
+
+-- Transparency functions (moved here to be available early in load order)
+function DialogUI_ApplyAlpha()
+    local alpha = DialogUI_Config.alpha;
+    
+    -- Apply transparency to quest frame and its panels
+    if DQuestFrame then
+        -- Apply to main quest frame background
+        DialogUI_ApplyAlphaToPanel(DQuestFrame, alpha);
+        
+        -- Apply to reward panel background
+        local rewardPanel = getglobal("DQuestFrameRewardPanel");
+        if rewardPanel then
+            DialogUI_ApplyAlphaToPanel(rewardPanel, alpha);
+        end
+        
+        -- Apply to progress panel background
+        local progressPanel = getglobal("DQuestFrameProgressPanel");
+        if progressPanel then
+            DialogUI_ApplyAlphaToPanel(progressPanel, alpha);
+        end
+        
+        -- Apply to greeting panel background
+        local greetingPanel = getglobal("DQuestFrameGreetingPanel");
+        if greetingPanel then
+            DialogUI_ApplyAlphaToPanel(greetingPanel, alpha);
+        end
+        
+        -- Apply to detail panel background
+        local detailPanel = getglobal("DQuestFrameDetailPanel");
+        if detailPanel then
+            DialogUI_ApplyAlphaToPanel(detailPanel, alpha);
+        end
+    end
+    
+    -- Apply transparency to gossip frame
+    if DGossipFrame then
+        DialogUI_ApplyAlphaToPanel(DGossipFrame, alpha);
+        
+        -- Apply to gossip greeting panel
+        local gossipGreetingPanel = getglobal("DGossipFrameGreetingPanel");
+        if gossipGreetingPanel then
+            DialogUI_ApplyAlphaToPanel(gossipGreetingPanel, alpha);
+        end
+    end
+    
+    -- Apply transparency to any money frames that might exist
+    local moneyFrame = getglobal("DQuestProgressRequiredMoneyFrame");
+    if moneyFrame then
+        DialogUI_ApplyAlphaToPanel(moneyFrame, alpha);
+    end
+end
+
+-- Helper function to apply alpha to a panel's background texture
+function DialogUI_ApplyAlphaToPanel(panel, alpha)
+    if not panel then return; end
+    
+    local regions = {panel:GetRegions()};
+    for i = 1, table.getn(regions) do
+        local region = regions[i];
+        if region and region:GetObjectType() == "Texture" then
+            -- Apply alpha only to background textures (usually the first ones)
+            local texture = region:GetTexture();
+            if texture and (string.find(texture, "Parchment") or i == 1) then
+                region:SetAlpha(alpha);
+                -- Only apply to the first parchment texture found
+                break;
+            end
+        end
+    end
 end
