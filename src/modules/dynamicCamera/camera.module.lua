@@ -524,7 +524,7 @@ function DynamicCamera:AddConfigControls()
     
     -- Create camera section title
     local cameraTitle = parent:CreateFontString("DCameraSectionTitle", "OVERLAY", "DQuestButtonTitleGossip");
-    cameraTitle:SetPoint("TOP", DConfigFontLabel, "BOTTOM", -100, -35);
+    cameraTitle:SetPoint("TOP", DConfigFontLabel, "BOTTOM", -110, -35);
     cameraTitle:SetText("Configuracion de Camara");
     cameraTitle:SetJustifyH("LEFT");
     SetFontColor(cameraTitle, "DarkBrown");
@@ -563,15 +563,15 @@ function DynamicCamera:AddConfigControls()
     
     -- Checkboxes for interaction types
     local checkboxData = {
-        {name = "Comercio", config = "enableForGossip", xOffset = 0},
-        {name = "Vendedores", config = "enableForVendors", xOffset = -30},
-        {name = "Entrenadores", config = "enableForTrainers", xOffset = -60},
-        {name = "Misiones", config = "enableForQuests", xOffset = -90}
+        {name = "Comercio", config = "enableForGossip", yOffset = -10},
+        {name = "Vendedores", config = "enableForVendors", yOffset = -35},
+        {name = "Entrenadores", config = "enableForTrainers", yOffset = -60},
+        {name = "Misiones", config = "enableForQuests", yOffset = -85}
     };
     
     for i, data in ipairs(checkboxData) do
         local checkbox = CreateFrame("CheckButton", "DCamera" .. data.name .. "Checkbox", parent, "UICheckButtonTemplate");
-        checkbox:SetPoint("TOPLEFT", typesLabel, "BOTTOMLEFT", 0, data.xOffset);
+        checkbox:SetPoint("TOPLEFT", typesLabel, "BOTTOMLEFT", 0, data.yOffset);
         checkbox:SetScale(0.7);
         checkbox:SetChecked(self.config[data.config]);
         
@@ -588,7 +588,7 @@ function DynamicCamera:AddConfigControls()
     
     -- Quick preset section
     local presetsLabel = parent:CreateFontString("DCameraPresetsLabel", "OVERLAY", "DQuestButtonTitleGossip");
-    presetsLabel:SetPoint("TOPLEFT", typesLabel, "BOTTOMLEFT", 0, -110);
+    presetsLabel:SetPoint("TOPLEFT", typesLabel, "BOTTOMLEFT", 0, -120);
     presetsLabel:SetText("Vistas Rapidas de Camara:");
     SetFontColor(presetsLabel, "DarkBrown");
     
