@@ -14,7 +14,12 @@ This enhanced version builds upon the original DialogUI foundation and adds:
   - Scale adjustment (0.5x to 2.0x)
   - Transparency control (10% to 100%)
   - Font size scaling (0.5x to 2.0x)
-- **🎨 Unified Parchment Theme** - All windows use consistent papiro aesthetic
+- **� Dynamic Camera System** - Smooth camera transitions during NPC interactions:
+  - Configurable distance and angle
+  - Individual controls for gossip, vendors, trainers, and quests
+  - Smooth transitions with customizable speed
+  - Multiple presets (Cinematic, Close, Normal, Wide)
+- **�🎨 Unified Parchment Theme** - All windows use consistent papiro aesthetic
 - **⌨️ ESC Key Support** - Press ESC or Decline to close quest windows properly
 - **🖼️ Enhanced Icon System** - Native gossip icons with proper fallback handling
 
@@ -45,6 +50,10 @@ This enhanced version builds upon the original DialogUI foundation and adds:
 | `/dialogui` | Open configuration window |
 | `/resetdialogs` | Reset all window positions |
 | `/debugdialogs` | Show debug information |
+| `/togglecamera` | Enable/disable dynamic camera |
+| `/testcamera` | Test camera positioning |
+| `/cameradebug` | Show camera and frame debug info |
+| `/camerapreset [name]` | Apply camera preset (cinematic, close, normal, wide) |
 
 ## 🔧 Compatibility
 
@@ -121,6 +130,7 @@ DialogUI/src/assets/art/parchment/ParchmentLayout.xcf
 - **Ventanas móviles**: Arrastra las ventanas donde quieras
 - **Posiciones persistentes**: Se guardan entre sesiones
 - **Panel de configuración avanzado**: Escala, transparencia y tamaño de fuente
+- **Sistema de cámara dinámica**: Transiciones suaves durante interacciones con NPCs
 - **Soporte para tecla ESC**: Cierra ventanas con ESC o Rechazar
 - **Tema unificado**: Todas las ventanas usan el mismo estilo de pergamino
 
@@ -129,6 +139,10 @@ DialogUI/src/assets/art/parchment/ParchmentLayout.xcf
 - `/dialogui` - Abrir ventana de configuración
 - `/resetdialogs` - Reiniciar posiciones de ventanas
 - `/debugdialogs` - Mostrar información de debug
+- `/togglecamera` - Activar/desactivar cámara dinámica
+- `/testcamera` - Probar posicionamiento de cámara
+- `/cameradebug` - Información de debug de cámara
+- `/camerapreset [nombre]` - Aplicar preset de cámara
 
 ### 📝 Nota Importante
 

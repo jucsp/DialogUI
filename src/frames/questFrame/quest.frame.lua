@@ -188,11 +188,19 @@ function DQuestFrame_OnEvent(event)
         DialogUI_ApplyPositionToAllFrames();
         -- Load configuration settings
         DialogUI_LoadConfig();
+        -- Initialize Dynamic Camera module
+        if DynamicCamera then
+            DynamicCamera:Initialize();
+        end
         -- Hide default frames from the start
         HideDefaultFrames();
         return;
     end
     if (event == "QUEST_FINISHED") then
+        -- Notify Dynamic Camera module that quest is finished
+        if DynamicCamera and DynamicCamera.OnQuestFinished then
+            DynamicCamera:OnQuestFinished();
+        end
         HideUIPanel(DQuestFrame);
         return;
     end
@@ -217,6 +225,11 @@ function DQuestFrame_OnEvent(event)
     elseif (event == "QUEST_DETAIL") then
         DQuestFrameDetailPanel:Hide();
         DQuestFrameDetailPanel:Show();
+        
+        -- Notify Dynamic Camera module
+        if DynamicCamera and DynamicCamera.OnQuestDetail then
+            DynamicCamera:OnQuestDetail();
+        end
         
         -- Ensure panel is fully visible
         if not DQuestFrameDetailPanel:IsVisible() then
@@ -855,12 +868,20 @@ end
 function DQuestDetailDeclineButton_OnClick()
     DeclineQuest();
     PlaySound("igQuestCancel");
+    -- Notify Dynamic Camera module that quest interaction ended
+    if DynamicCamera and DynamicCamera.OnQuestFinished then
+        DynamicCamera:OnQuestFinished();
+    end
     -- Close the quest frame after declining
     HideUIPanel(DQuestFrame);
 end
 
 -- Function to handle closing the quest frame
 function DQuestFrame_OnHide()
+    -- Notify Dynamic Camera module that quest interaction ended
+    if DynamicCamera and DynamicCamera.OnQuestFinished then
+        DynamicCamera:OnQuestFinished();
+    end
     -- Save position when the frame closes
     DialogUI_SavePosition();
     -- Clear any quest-related data if needed

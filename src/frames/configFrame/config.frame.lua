@@ -25,26 +25,41 @@ function DConfigFrame_OnLoad()
     this:EnableMouse(true);
     
     -- Set initial info text with available commands
-    local infoText = "Adjust the settings below to customize your DialogUI experience.\n\n" ..
-                    "Scale: Changes the size of all dialog windows (0.5 - 2.0)\n" ..
-                    "Transparency: Adjusts window background opacity (10% - 100%)\n" ..
-                    "Font Size: Changes text size in dialogs (0.5 - 2.0)\n\n" ..
-                    "Available Commands:\n" ..
-                    "/dialogui or /dialogui config - Opens this configuration window\n" ..
-                    "/dialogui reset - Resets all settings to default\n\n" ..
-                    "You can also edit values directly in the text boxes.\n" ..
-                    "Changes are applied immediately and saved automatically.";
-    DConfigInfoText:SetText(infoText);
-    SetFontColor(DConfigInfoText, "DarkBrown");
+    local infoText = "Ajusta la configuración para personalizar tu experiencia con DialogUI.\n\n" ..
+                    "Escala: Cambia el tamaño de todas las ventanas de diálogo (0.5 - 2.0)\n" ..
+                    "Transparencia: Ajusta la opacidad del fondo (10% - 100%)\n" ..
+                    "Tamaño de Fuente: Cambia el tamaño del texto en diálogos (0.5 - 2.0)\n" ..
+                    "Cámara Dinámica: Ajusta suavemente la cámara durante interacciones con NPCs\n\n" ..
+                    "Comandos Disponibles:\n" ..
+                    "- /dialogui o /dialogui config: Abre esta ventana de configuración\n" ..
+                    "- /dialogui reset: Restablece toda la configuración por defecto\n" ..
+                    "- /togglecamera o /dcamera: Activa/desactiva la cámara dinámica\n" ..
+                    "- /testcamera: Prueba el posicionamiento de cámara\n" ..
+                    "- /camerapreset [preset]: Aplica vistas predefinidas (cinematic, close, normal, wide)\n\n" ..
+                    "También puedes editar valores directamente en las cajas de texto.\n" ..
+                    "Los cambios se aplican inmediatamente y se guardan automáticamente.";
+    
+    if DConfigInfoText then
+        DConfigInfoText:SetText(infoText);
+        SetFontColor(DConfigInfoText, "DarkBrown");
+    end
 end
 
 function DConfigFrame_OnShow()
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: DConfigFrame_OnShow llamado");
     PlaySound("igQuestListOpen");
     
     -- Always keep config frame at scale 1.0 and centered
     DConfigFrame:SetScale(1.0);
     DConfigFrame:ClearAllPoints();
     DConfigFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0);
+    
+    -- Initialize scroll frame
+    if DConfigScrollFrame and DConfigScrollChild then
+        DConfigScrollFrame:SetScrollChild(DConfigScrollChild);
+        DConfigScrollFrame:SetHorizontalScroll(0);
+        DConfigScrollFrame:SetVerticalScroll(0);
+    end
     
     -- Set label colors
     local scaleLabel = getglobal("DConfigScaleLabel");
@@ -80,6 +95,20 @@ function DConfigFrame_OnShow()
     
     -- Apply current transparency to config frame background
     DialogUI_ApplyConfigAlpha();
+    
+    -- Add camera controls if DynamicCamera module is available
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Verificando DynamicCamera module...");
+    if DynamicCamera then
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: DynamicCamera existe");
+        if DynamicCamera.AddConfigControls then
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI: AddConfigControls existe, llamando...");
+            DynamicCamera:AddConfigControls();
+        else
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI: ERROR - AddConfigControls no existe");
+        end
+    else
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: ERROR - DynamicCamera no existe");
+    end
 end
 
 function DConfigFrame_OnHide()
@@ -341,11 +370,15 @@ end
 
 -- Show/Hide Config Frame Functions (these will override the basic ones from quest.frame.lua)
 function DialogUI_ShowConfig()
-    ShowUIPanel(DConfigFrame);
+    if DConfigFrame then
+        DConfigFrame:Show();
+    end
 end
 
 function DialogUI_HideConfig()
-    HideUIPanel(DConfigFrame);
+    if DConfigFrame then
+        DConfigFrame:Hide();
+    end
 end
 
 -- Config Frame specific transparency function
