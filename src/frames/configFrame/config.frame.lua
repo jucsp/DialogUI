@@ -46,7 +46,6 @@ function DConfigFrame_OnLoad()
 end
 
 function DConfigFrame_OnShow()
-    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: DConfigFrame_OnShow llamado");
     PlaySound("igQuestListOpen");
     
     -- Always keep config frame at scale 1.0 and centered
@@ -97,11 +96,8 @@ function DConfigFrame_OnShow()
     DialogUI_ApplyConfigAlpha();
     
     -- Add camera controls if DynamicCamera module is available
-    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Verificando DynamicCamera module...");
     if DynamicCamera then
-        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: DynamicCamera existe");
         if DynamicCamera.AddConfigControls then
-            DEFAULT_CHAT_FRAME:AddMessage("DialogUI: AddConfigControls existe, llamando...");
             DynamicCamera:AddConfigControls();
         else
             DEFAULT_CHAT_FRAME:AddMessage("DialogUI: ERROR - AddConfigControls no existe");

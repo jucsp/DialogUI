@@ -192,8 +192,6 @@ function DQuestFrame_OnEvent(event)
         if DynamicCamera then
             DynamicCamera:Initialize();
         end
-        -- Hide default frames from the start
-        HideDefaultFrames();
         return;
     end
     if (event == "QUEST_FINISHED") then
@@ -208,17 +206,13 @@ function DQuestFrame_OnEvent(event)
         return;
     end
 
-    DQuestFrame_SetPortrait();
-    DQuestFrame:Show();
-    DQuestFrame:SetAlpha(1); -- Ensure frame is fully visible
-    
-    -- Ensure position is applied
-    DialogUI_LoadPosition(DQuestFrame);
-    
     HideDefaultFrames();
-    DialogUI_EnsureOriginalQuestHidden();
-    -- Don't check DQuestFrame:IsVisible() here as it might not be accurate
-    -- The individual panels will handle their own visibility
+    DQuestFrame_SetPortrait();
+    ShowUIPanel(DQuestFrame);
+    if (not DQuestFrame:IsVisible()) then
+        CloseQuest();
+        return;
+    end
     if (event == "QUEST_GREETING") then
         DQuestFrameGreetingPanel:Hide();
         DQuestFrameGreetingPanel:Show();
@@ -230,14 +224,6 @@ function DQuestFrame_OnEvent(event)
         if DynamicCamera and DynamicCamera.OnQuestDetail then
             DynamicCamera:OnQuestDetail();
         end
-        
-        -- Ensure panel is fully visible
-        if not DQuestFrameDetailPanel:IsVisible() then
-            DQuestFrameDetailPanel:SetAlpha(1);
-            DQuestFrameDetailPanel:Show();
-            DQuestFrame:SetAlpha(1);
-            DQuestFrame:Show();
-        end;
     elseif (event == "QUEST_PROGRESS") then
         DQuestFrameProgressPanel:Hide();
         DQuestFrameProgressPanel:Show();
@@ -275,7 +261,6 @@ function DQuestFrameRewardPanel_OnShow()
     DQuestFrameGreetingPanel:Hide();
     DQuestFrameProgressPanel:Hide();
     HideDefaultFrames();
-    DialogUI_EnsureOriginalQuestHidden();
     DQuestFrameNpcNameText:SetText(GetTitleText());
     DQuestRewardText:SetText(GetRewardText());
     SetFontColor(DQuestFrameNpcNameText, "DarkBrown");
@@ -868,12 +853,6 @@ end
 function DQuestDetailDeclineButton_OnClick()
     DeclineQuest();
     PlaySound("igQuestCancel");
-    -- Notify Dynamic Camera module that quest interaction ended
-    if DynamicCamera and DynamicCamera.OnQuestFinished then
-        DynamicCamera:OnQuestFinished();
-    end
-    -- Close the quest frame after declining
-    HideUIPanel(DQuestFrame);
 end
 
 -- Function to handle closing the quest frame

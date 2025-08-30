@@ -150,7 +150,26 @@ El addon está optimizado para cliente en inglés. Para usarlo en español, edit
 
 ---
 
-## 📄 License
+## � TODO - Planned Improvements
+
+### 🎥 Dynamic Camera System Enhancements
+- [ ] **Configurable Camera Presets**: Make each preset (Cinematic, Close, Normal, Wide) fully configurable by users
+- [ ] **Advanced Camera Integration**: Implement WoW's native SaveView() and SetView() functions for:
+  - Precise camera position saving (exact angle, distance, pitch, yaw)
+  - Perfect restoration using native WoW camera system
+  - Seamless integration with game's camera state management
+- [ ] **Enhanced Preset Management**: 
+  - Allow users to create custom presets beyond the 4 defaults
+  - Save/load preset configurations to/from saved variables
+  - Export/import preset configurations between characters
+- [ ] **Smooth Transition Improvements**:
+  - Better interpolation algorithms for camera movement
+  - Configurable transition timing and easing functions
+  - Respect player movement and combat state during transitions
+
+---
+
+## �📄 License
 
 This enhanced fork maintains the same spirit of learning and sharing as the original DialogUI project.
 

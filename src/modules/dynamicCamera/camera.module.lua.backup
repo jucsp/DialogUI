@@ -29,6 +29,7 @@ DynamicCamera.config = {
 
 -- Save original camera position
 function DynamicCamera:SaveOriginalPosition()
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: SaveOriginalPosition called");
     if not self.isActive then
         -- Try to get camera values, with fallback defaults
         local distance = 15; -- Default fallback
@@ -38,23 +39,30 @@ function DynamicCamera:SaveOriginalPosition()
         -- Try to get actual values if functions are available
         if GetCameraDistance then
             distance = GetCameraDistance() or 15;
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: GetCameraDistance returned: " .. tostring(distance));
         else
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: GetCameraDistance not available, using default");
         end
         
         if GetCameraPitch then
             pitch = GetCameraPitch() or 0;
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: GetCameraPitch returned: " .. tostring(pitch));
         else
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: GetCameraPitch not available, using default");
         end
         
         if GetCameraYaw then
             yaw = GetCameraYaw() or 0;
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: GetCameraYaw returned: " .. tostring(yaw));
         else
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: GetCameraYaw not available, using default");
         end
         
         self.originalDistance = distance;
         self.originalPitch = pitch;
         self.originalYaw = yaw;
         
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Saved - Distance: " .. tostring(self.originalDistance) .. ", Pitch: " .. tostring(self.originalPitch));
         
         -- Store in saved variables for persistence
         if not DialogUI_SavedConfig then
@@ -64,11 +72,13 @@ function DynamicCamera:SaveOriginalPosition()
         DialogUI_SavedConfig.originalCameraPitch = self.originalPitch;
         DialogUI_SavedConfig.originalCameraYaw = self.originalYaw;
         
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: SaveOriginalPosition completed successfully");
     end
 end
 
 -- Save current camera position as preset for restoration
 function DynamicCamera:SaveCameraPreset()
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Guardando posicion actual de camara...");
     
     -- Try to capture current camera state using WoW Vanilla functions
     local currentDistance = 15; -- Default fallback
@@ -80,11 +90,13 @@ function DynamicCamera:SaveCameraPreset()
         local maxDist = GetCVar("cameraDistanceMax");
         if maxDist then
             currentDistance = tonumber(maxDist) or 15;
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Distancia actual capturada: " .. currentDistance);
         end
         
         -- Try to get camera angle info if available
         local cameraPitch = GetCVar("cameraPitchMoveSpeed");
         if cameraPitch then
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Info de angulo disponible");
         end
     end
     
@@ -98,23 +110,28 @@ function DynamicCamera:SaveCameraPreset()
     -- Save configuration
     self:SaveConfig();
     
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: ¡Posicion actual guardada! Se usara para restaurar cuando termines de hablar con NPCs.");
 end
 
 -- Restore original camera position
 function DynamicCamera:RestoreOriginalPosition()
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Restaurando posicion original...");
     
     if self.originalDistance then
         -- Use saved preset if available
         if self.config.usePresetRestore and self.config.savedCameraDistance then
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Usando preset guardado por el usuario");
             
             -- Restore to saved preset position
             if SetCVar and self.config.savedCameraDistance then
                 SetCVar("cameraDistanceMax", tostring(self.config.savedCameraDistance));
+                DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Distancia restaurada a: " .. tostring(self.config.savedCameraDistance));
             end
             
             -- Restore view mode if available
             if SetView and self.config.presetView then
                 SetView(self.config.presetView);
+                DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Vista restaurada a: " .. tostring(self.config.presetView));
             end
             
             -- Try to restore camera distance using zoom functions as backup
@@ -125,18 +142,22 @@ function DynamicCamera:RestoreOriginalPosition()
                     for i = 1, 3 do
                         CameraZoomOut(2.0);
                     end
+                    DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Aplicando zoom out para vista amplia");
                 end
             end
             
         else
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Usando restauracion por defecto (no hay preset guardado)");
             -- Default restore to third-person
             if SetView then
                 SetView(2); -- Third person view
+                DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Restaurado a vista en tercera persona");
             end
             
             -- Reset camera distance to reasonable default
             if SetCVar then
                 SetCVar("cameraDistanceMax", "15");
+                DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Distancia restaurada a valor por defecto: 15");
             end
         end
         
@@ -146,7 +167,9 @@ function DynamicCamera:RestoreOriginalPosition()
         self.originalPitch = nil;
         self.originalYaw = nil;
         
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: ¡Posicion original restaurada! Camara desactivada");
     else
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: No hay posicion original para restaurar");
     end
 end
 
@@ -182,38 +205,12 @@ function DynamicCamera:ApplyInteractionPosition()
     self.isActive = true;
 end
 
--- Apply camera settings immediately without transitions
-function DynamicCamera:ApplyImmediateCamera(distance, pitch, yaw)
-    -- Apply camera settings immediately for better performance
-    if CameraZoomIn and CameraZoomOut then
-        -- Zoom to the target distance immediately
-        local currentDist = GetCameraDistance and GetCameraDistance() or 15;
-        local targetDist = distance or 8;
-        
-        if currentDist > targetDist then
-            -- Need to zoom in
-            for i = 1, math.ceil(currentDist - targetDist) do
-                CameraZoomIn(1);
-            end
-        elseif currentDist < targetDist then
-            -- Need to zoom out
-            for i = 1, math.ceil(targetDist - currentDist) do
-                CameraZoomOut(1);
-            end
-        end
-    elseif SetCVar then
-        -- Use CVars for immediate camera control
-        if distance then
-            SetCVar("cameraDistanceMax", distance);
-            SetCVar("cameraDistanceMaxFactor", 1.0);
-        end
-    end
-end
-
 -- Smooth camera transition
 function DynamicCamera:SmoothTransition(targetDistance, targetPitch, targetYaw, onComplete)
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: SmoothTransition started - Target distance: " .. tostring(targetDistance));
     
     if self.transitionActive then
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Transition already active, skipping");
         return; -- Avoid multiple transitions
     end
     
@@ -224,20 +221,29 @@ function DynamicCamera:SmoothTransition(targetDistance, targetPitch, targetYaw, 
     local startPitch = self.originalPitch or 0;
     local startYaw = self.originalYaw or 0;
     
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Start position - Distance: " .. tostring(startDistance) .. ", Pitch: " .. tostring(startPitch));
     
     -- Check what camera functions are available in this WoW version
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Checking available camera functions:");
+    DEFAULT_CHAT_FRAME:AddMessage("- SetView: " .. (SetView and "YES" or "NO"));
+    DEFAULT_CHAT_FRAME:AddMessage("- CameraZoomIn: " .. (CameraZoomIn and "YES" or "NO"));
+    DEFAULT_CHAT_FRAME:AddMessage("- CameraZoomOut: " .. (CameraZoomOut and "YES" or "NO"));
+    DEFAULT_CHAT_FRAME:AddMessage("- SetCVar: " .. (SetCVar and "YES" or "NO"));
     
     -- Try using camera functions that are available in vanilla
     if CameraZoomIn and targetDistance < 10 then
         -- Use zoom for closer view
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Using CameraZoomIn for close interaction");
         for i = 1, 5 do
             CameraZoomIn(1.0); -- Zoom in step by step
         end
     elseif SetCVar then
         -- Try using CVars for camera control
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Using CVars for camera control");
         SetCVar("cameraDistanceMax", tostring(targetDistance));
         SetCVar("cameraDistanceMaxFactor", "1.0");
     else
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: No usable camera functions found - feature not supported in this WoW version");
     end
     
     self.transitionActive = false;
@@ -253,6 +259,7 @@ function DynamicCamera:SmoothTransition(targetDistance, targetPitch, targetYaw, 
     local transitionFrame = CreateFrame("Frame");
     local elapsedTime = 0;
     
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Starting transition loop");
     
     transitionFrame:SetScript("OnUpdate", function()
         elapsedTime = elapsedTime + arg1; -- arg1 is the time elapsed since last frame
@@ -338,6 +345,9 @@ function DynamicCamera:OnQuestDetail()
         self:ApplyInteractionPosition();
     end
 end
+        
+        delayFrame:SetScript("OnUpdate", function()
+end
 
 function DynamicCamera:OnQuestFinished()
     if self.config.enableForQuests and self.isActive then
@@ -391,10 +401,12 @@ end
 
 -- Initialize camera module
 function DynamicCamera:Initialize()
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Initialize called");
     
     -- Load configuration
     self:LoadConfig();
     
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Config loaded - Enabled: " .. (self.config.enabled and "YES" or "NO") .. ", Gossip: " .. (self.config.enableForGossip and "YES" or "NO") .. ", Quests: " .. (self.config.enableForQuests and "YES" or "NO"));
 
     -- Create event frame
     local eventFrame = CreateFrame("Frame", "DynamicCameraEventFrame");
@@ -408,9 +420,11 @@ function DynamicCamera:Initialize()
     eventFrame:RegisterEvent("QUEST_FINISHED");
     eventFrame:RegisterEvent("QUEST_COMPLETE");
 
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Event frame created and events registered");
 
     eventFrame:SetScript("OnEvent", function()
         local event = event; -- Local reference to event
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Event received - " .. tostring(event));
 
         if event == "GOSSIP_SHOW" then
             DynamicCamera:OnGossipShow();
@@ -431,14 +445,14 @@ function DynamicCamera:Initialize()
         end
     end);
     
-end
-
--- Slash commands for camera module
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera: Initialization complete");
+end-- Slash commands for camera module
 SlashCmdList["DYNAMICCAMERA_TOGGLE"] = function()
     DynamicCamera.config.enabled = not DynamicCamera.config.enabled;
     DynamicCamera:SaveConfig();
     
     local status = DynamicCamera.config.enabled and "enabled" or "disabled";
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Dynamic Camera " .. status);
 end;
 SLASH_DYNAMICCAMERA_TOGGLE1 = "/togglecamera";
 SLASH_DYNAMICCAMERA_TOGGLE2 = "/dcamera";
@@ -447,8 +461,10 @@ SLASH_DYNAMICCAMERA_TOGGLE2 = "/dcamera";
 SlashCmdList["DYNAMICCAMERA_TEST"] = function()
     if DynamicCamera.isActive then
         DynamicCamera:RestoreOriginalPosition();
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Camera restored to original position");
     else
         DynamicCamera:ApplyInteractionPosition();
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Camera applied interaction position");
     end
 end;
 SLASH_DYNAMICCAMERA_TEST1 = "/testcamera";
@@ -459,6 +475,11 @@ SlashCmdList["DYNAMICCAMERA_QUESTDEBUG"] = function()
     local questAlpha = DQuestFrame and DQuestFrame:GetAlpha() or "N/A";
     local cameraActive = DynamicCamera.isActive and "YES" or "NO";
     
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI Camera Debug:");
+    DEFAULT_CHAT_FRAME:AddMessage("- Quest Frame Visible: " .. questVisible);
+    DEFAULT_CHAT_FRAME:AddMessage("- Quest Frame Alpha: " .. tostring(questAlpha));
+    DEFAULT_CHAT_FRAME:AddMessage("- Camera Active: " .. cameraActive);
+    DEFAULT_CHAT_FRAME:AddMessage("- Quests Enabled: " .. (DynamicCamera.config.enableForQuests and "YES" or "NO"));
 end;
 SLASH_DYNAMICCAMERA_QUESTDEBUG1 = "/cameradebug";
 
@@ -473,11 +494,13 @@ SLASH_DYNAMICCAMERA_SAVEPRESET2 = "/savepreset";
 function DynamicCamera:AddConfigControls()
     local parent = DConfigScrollChild or DConfigFrame;
     if not parent then
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: No parent found for camera controls");
         return;
     end
     
     -- Verify DConfigFontLabel exists
     if not DConfigFontLabel then
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: ERROR - DConfigFontLabel no existe");
         return;
     end
     
@@ -561,6 +584,7 @@ function DynamicCamera:AddConfigControls()
     };
     
     -- Create preset buttons manually (avoiding loops that may fail in Vanilla)
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Creando botones manualmente...");
     
     -- Button 1: Cinematica
     local btn1Text = parent:CreateFontString("DCameraBtn1Text", "OVERLAY", "DQuestButtonTitleGossip");
@@ -568,6 +592,7 @@ function DynamicCamera:AddConfigControls()
     btn1Text:SetText("[Cinematica]");
     btn1Text:SetJustifyH("LEFT");
     SetFontColor(btn1Text, "DarkBrown");
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Boton Cinematica creado");
     
     -- Button 2: Cerca  
     local btn2Text = parent:CreateFontString("DCameraBtn2Text", "OVERLAY", "DQuestButtonTitleGossip");
@@ -575,6 +600,7 @@ function DynamicCamera:AddConfigControls()
     btn2Text:SetText("[Cerca]");
     btn2Text:SetJustifyH("LEFT");
     SetFontColor(btn2Text, "DarkBrown");
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Boton Cerca creado");
     
     -- Button 3: Normal
     local btn3Text = parent:CreateFontString("DCameraBtn3Text", "OVERLAY", "DQuestButtonTitleGossip");
@@ -582,6 +608,7 @@ function DynamicCamera:AddConfigControls()
     btn3Text:SetText("[Normal]");
     btn3Text:SetJustifyH("LEFT");
     SetFontColor(btn3Text, "DarkBrown");
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Boton Normal creado");
     
     -- Button 4: Amplia
     local btn4Text = parent:CreateFontString("DCameraBtn4Text", "OVERLAY", "DQuestButtonTitleGossip");
@@ -589,27 +616,40 @@ function DynamicCamera:AddConfigControls()
     btn4Text:SetText("[Amplia]");
     btn4Text:SetJustifyH("LEFT");
     SetFontColor(btn4Text, "DarkBrown");
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Boton Amplia creado");
     
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Todos los botones de texto creados");
     
     -- Now create clickable areas manually
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Creando areas clickeables...");
     
     -- Try creating simple buttons instead of frames
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Intentando crear botones simples...");
     
     -- Button 1: Cinematica
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Intentando crear button 1...");
     local btn1 = CreateFrame("Button", "DCameraBtn1", parent, "DUIPanelButtonTemplate");
     if btn1 then
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Button 1 creado exitosamente");
         
         -- Use SetWidth/SetHeight instead of SetSize for compatibility
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Configurando tamaño...");
         btn1:SetWidth(80);
         btn1:SetHeight(22);
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Tamaño configurado");
         
         -- Set position
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Configurando posición...");
         btn1:SetPoint("TOPLEFT", presetsLabel, "BOTTOMLEFT", 0, -10);
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Posición configurada");
         
         -- Set text using template method
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Configurando texto...");
         btn1:SetText("[Cinematica]");
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Texto configurado");
         
         -- Set click handler
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Configurando handler...");
         btn1:SetScript("OnClick", function()
             DynamicCamera.config.interactionDistance = 6;
             DynamicCamera.config.interactionPitch = -0.5;
@@ -628,18 +668,25 @@ function DynamicCamera:AddConfigControls()
                     end
                 end);
             end
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Preset Cinematica aplicado");
         end);
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Handler configurado");
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Button Cinematica COMPLETO");
     else
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: ERROR - No se pudo crear Button 1");
     end
     
     -- Button 2: Cerca
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Intentando crear button 2...");
     local btn2 = CreateFrame("Button", "DCameraBtn2", parent, "DUIPanelButtonTemplate");
     if btn2 then
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Button 2 creado exitosamente");
         btn2:SetWidth(80);
         btn2:SetHeight(22);
         btn2:SetPoint("TOPLEFT", presetsLabel, "BOTTOMLEFT", 85, -10);
         btn2:SetText("[Cerca]");
         btn2:SetScript("OnClick", function()
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Cerca presionado!");
             DynamicCamera.config.interactionDistance = 4;
             DynamicCamera.config.interactionPitch = -0.2;
             DynamicCamera:SaveConfig();
@@ -657,18 +704,24 @@ function DynamicCamera:AddConfigControls()
                     end
                 end);
             end
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Preset Cerca aplicado (se usara en proximas interacciones con NPCs)");
         end);
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Button Cerca COMPLETO");
     else
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: ERROR - No se pudo crear Button 2");
     end
     
     -- Button 3: Normal
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Intentando crear button 3...");
     local btn3 = CreateFrame("Button", "DCameraBtn3", parent, "DUIPanelButtonTemplate");
     if btn3 then
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Button 3 creado exitosamente");
         btn3:SetWidth(80);
         btn3:SetHeight(22);
         btn3:SetPoint("TOPLEFT", presetsLabel, "BOTTOMLEFT", 170, -10);
         btn3:SetText("[Normal]");
         btn3:SetScript("OnClick", function()
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Normal presionado!");
             DynamicCamera.config.interactionDistance = 8;
             DynamicCamera.config.interactionPitch = -0.3;
             DynamicCamera:SaveConfig();
@@ -686,18 +739,24 @@ function DynamicCamera:AddConfigControls()
                     end
                 end);
             end
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Preset Normal aplicado (se usara en proximas interacciones con NPCs)");
         end);
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Button Normal COMPLETO");
     else
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: ERROR - No se pudo crear Button 3");
     end
     
     -- Button 4: Amplia
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Intentando crear button 4...");
     local btn4 = CreateFrame("Button", "DCameraBtn4", parent, "DUIPanelButtonTemplate");
     if btn4 then
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Button 4 creado exitosamente");
         btn4:SetWidth(80);
         btn4:SetHeight(22);
         btn4:SetPoint("TOPLEFT", presetsLabel, "BOTTOMLEFT", 255, -10);
         btn4:SetText("[Amplia]");
         btn4:SetScript("OnClick", function()
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Amplia presionado!");
             DynamicCamera.config.interactionDistance = 12;
             DynamicCamera.config.interactionPitch = -0.1;
             DynamicCamera:SaveConfig();
@@ -715,10 +774,14 @@ function DynamicCamera:AddConfigControls()
                     end
                 end);
             end
+            DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Preset Amplia aplicado (se usara en proximas interacciones con NPCs)");
         end);
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Button Amplia COMPLETO");
     else
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: ERROR - No se pudo crear Button 4");
     end
     
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Todos los botones preset creados");
     
     -- Save Current Camera button
     local saveCurrentBtn = CreateFrame("Button", "DSaveCurrentButton", parent, "DUIPanelButtonTemplate");
@@ -728,6 +791,7 @@ function DynamicCamera:AddConfigControls()
     saveCurrentBtn:SetText("Guardar Posicion Actual");
     saveCurrentBtn:SetScript("OnClick", function()
         DynamicCamera:SaveCameraPreset();
+        DEFAULT_CHAT_FRAME:AddMessage("DialogUI: ¡Posicion de camara guardada! Se usara al terminar conversaciones con NPCs");
         
         -- Update status indicator if it exists
         if DynamicCamera.presetStatus then
@@ -749,6 +813,9 @@ function DynamicCamera:AddConfigControls()
     end
     
     -- Store reference for updates
+    self.presetStatus = presetStatus;    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Boton 'Guardar Actual' creado");
     
+    DEFAULT_CHAT_FRAME:AddMessage("DialogUI: Seccion de camara creada con " .. table.getn(presets) .. " presets y opciones avanzadas");
 end
 
+DEFAULT_CHAT_FRAME:AddMessage("DialogUI: AddConfigControls definido en camera.module.lua");
