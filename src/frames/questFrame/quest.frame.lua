@@ -45,8 +45,8 @@ function DQuestFrame_OnLoad()
     -- Hook original quest frame functions to prevent them from showing
     DialogUI_HookOriginalQuestFunctions();
     
-    -- Register frame with UI Panel system to handle ESC key
-    UIPanelWindows["DQuestFrame"] = {area = "center", pushable = 0, whileDead = 1};
+    -- TEMPORARILY DISABLED: Register frame with UI Panel system to handle ESC key
+    -- UIPanelWindows["DQuestFrame"] = {area = "center", pushable = 0, whileDead = 1};
 end
 
 -- Functions to save and load frame position (unified for all DialogUI frames)
@@ -123,51 +123,45 @@ function DQuestFrame_OnMouseUp()
 end
 
 function HideDefaultFrames()
-    -- Hide the main original quest frame completely
+    -- Hide individual panels (as original)
+    QuestFrameGreetingPanel:Hide()
+    QuestFrameDetailPanel:Hide()
+    QuestFrameProgressPanel:Hide()
+    QuestFrameRewardPanel:Hide()
+    QuestNpcNameFrame:Hide()
+    QuestFramePortrait:SetTexture()
+    
+    -- Move the main QuestFrame off-screen and make it invisible
+    -- This keeps it functional for event handling but prevents visual conflicts
     if QuestFrame then
-        QuestFrame:Hide();
-    end
-    
-    -- Hide all original quest panels
-    if QuestFrameGreetingPanel then
-        QuestFrameGreetingPanel:Hide();
-    end
-    if QuestFrameDetailPanel then
-        QuestFrameDetailPanel:Hide();
-    end
-    if QuestFrameProgressPanel then
-        QuestFrameProgressPanel:Hide();
-    end
-    if QuestFrameRewardPanel then
-        QuestFrameRewardPanel:Hide();
-    end
-    if QuestNpcNameFrame then
-        QuestNpcNameFrame:Hide();
-    end
-    if QuestFramePortrait then
-        QuestFramePortrait:SetTexture();
-    end
-    
-    -- Hide the original close button
-    if QuestFrameCloseButton then
-        QuestFrameCloseButton:Hide();
+        QuestFrame:ClearAllPoints();
+        QuestFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", -2000, -2000);
+        QuestFrame:SetAlpha(0);
     end
 end
 
 -- Function to ensure original frames stay hidden while our frame is visible
 function DialogUI_EnsureOriginalQuestHidden()
-    -- Hide the original quest frame if it exists
-    local questFrame = getglobal("QuestFrame");
-    if questFrame then
-        questFrame:Hide();
+    -- Hide the panels
+    QuestFrameGreetingPanel:Hide()
+    QuestFrameDetailPanel:Hide()
+    QuestFrameProgressPanel:Hide()
+    QuestFrameRewardPanel:Hide()
+    
+    -- Keep main QuestFrame off-screen and invisible
+    if QuestFrame then
+        QuestFrame:ClearAllPoints();
+        QuestFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", -2000, -2000);
+        QuestFrame:SetAlpha(0);
     end
 end
 
 -- Function to hook original WoW quest functions to prevent them from showing  
 function DialogUI_HookOriginalQuestFunctions()
-    -- Simple approach: just make sure to hide the original frame frequently
+    -- TEMPORARILY DISABLED: Simple approach: just make sure to hide the original frame frequently
     
-    -- Hook CloseWindows to handle ESC for our frame
+    -- TEMPORARILY DISABLED: Hook CloseWindows to handle ESC for our frame
+    --[[
     if not DialogUI_OriginalCloseWindows then
         DialogUI_OriginalCloseWindows = CloseWindows;
         CloseWindows = function()
@@ -180,6 +174,7 @@ function DialogUI_HookOriginalQuestFunctions()
             return DialogUI_OriginalCloseWindows();
         end;
     end
+    --]]
 end
 
 function DQuestFrame_OnEvent(event)
@@ -188,11 +183,17 @@ function DQuestFrame_OnEvent(event)
         DialogUI_ApplyPositionToAllFrames();
         -- Load configuration settings
         DialogUI_LoadConfig();
-        -- Hide default frames from the start
-        HideDefaultFrames();
+        -- Initialize Dynamic Camera module
+        if DynamicCamera then
+            DynamicCamera:Initialize();
+        end
         return;
     end
     if (event == "QUEST_FINISHED") then
+        -- Notify Dynamic Camera module that quest is finished
+        if DynamicCamera and DynamicCamera.OnQuestFinished then
+            DynamicCamera:OnQuestFinished();
+        end
         HideUIPanel(DQuestFrame);
         return;
     end
@@ -200,17 +201,13 @@ function DQuestFrame_OnEvent(event)
         return;
     end
 
-    DQuestFrame_SetPortrait();
-    DQuestFrame:Show();
-    DQuestFrame:SetAlpha(1); -- Ensure frame is fully visible
-    
-    -- Ensure position is applied
-    DialogUI_LoadPosition(DQuestFrame);
-    
     HideDefaultFrames();
-    DialogUI_EnsureOriginalQuestHidden();
-    -- Don't check DQuestFrame:IsVisible() here as it might not be accurate
-    -- The individual panels will handle their own visibility
+    DQuestFrame_SetPortrait();
+    ShowUIPanel(DQuestFrame);
+    if (not DQuestFrame:IsVisible()) then
+        CloseQuest();
+        return;
+    end
     if (event == "QUEST_GREETING") then
         DQuestFrameGreetingPanel:Hide();
         DQuestFrameGreetingPanel:Show();
@@ -218,13 +215,10 @@ function DQuestFrame_OnEvent(event)
         DQuestFrameDetailPanel:Hide();
         DQuestFrameDetailPanel:Show();
         
-        -- Ensure panel is fully visible
-        if not DQuestFrameDetailPanel:IsVisible() then
-            DQuestFrameDetailPanel:SetAlpha(1);
-            DQuestFrameDetailPanel:Show();
-            DQuestFrame:SetAlpha(1);
-            DQuestFrame:Show();
-        end;
+        -- Notify Dynamic Camera module
+        if DynamicCamera and DynamicCamera.OnQuestDetail then
+            DynamicCamera:OnQuestDetail();
+        end
     elseif (event == "QUEST_PROGRESS") then
         DQuestFrameProgressPanel:Hide();
         DQuestFrameProgressPanel:Show();
@@ -262,7 +256,6 @@ function DQuestFrameRewardPanel_OnShow()
     DQuestFrameGreetingPanel:Hide();
     DQuestFrameProgressPanel:Hide();
     HideDefaultFrames();
-    DialogUI_EnsureOriginalQuestHidden();
     DQuestFrameNpcNameText:SetText(GetTitleText());
     DQuestRewardText:SetText(GetRewardText());
     SetFontColor(DQuestFrameNpcNameText, "DarkBrown");
@@ -798,19 +791,10 @@ function DQuestFrameDetailPanel_OnShow()
     DQuestFrameProgressPanel:Hide();
     DQuestFrameGreetingPanel:Hide();
     HideDefaultFrames();
-    DialogUI_EnsureOriginalQuestHidden();
-    
-    -- Set text with safety checks
-    if GetTitleText and DQuestFrameNpcNameText then
-        DQuestFrameNpcNameText:SetText(GetTitleText());
-    end
-    if GetQuestText and DQuestDescription then
-        DQuestDescription:SetText(GetQuestText());
-    end
-    if GetObjectiveText and DQuestObjectiveText then
-        DQuestObjectiveText:SetText(GetObjectiveText());
-    end
-    
+    DialogUI_EnsureOriginalQuestHidden(); -- Extra call to ensure original stays hidden
+    DQuestFrameNpcNameText:SetText(GetTitleText());
+    DQuestDescription:SetText(GetQuestText());
+    DQuestObjectiveText:SetText(GetObjectiveText());
     SetFontColor(DQuestFrameNpcNameText, "DarkBrown");
     SetFontColor(DQuestDescription, "DarkBrown");
     SetFontColor(DQuestObjectiveText, "DarkBrown");
@@ -829,10 +813,16 @@ function DQuestFrameDetailPanel_OnShow()
     if (QUEST_FADING_DISABLE == "1") then
         DQuestFrameDetailPanel.fadingProgress = 1024;
     end
+    
+    -- Ensure original quest frame stays hidden during animation
+    DialogUI_EnsureOriginalQuestHidden();
 end
 
 function DQuestFrameDetailPanel_OnUpdate(elapsed)
     if (this.fading) then
+        -- Ensure original quest frame stays hidden during text animation
+        DialogUI_EnsureOriginalQuestHidden();
+        
         this.fadingProgress = this.fadingProgress + (elapsed * QUEST_DESCRIPTION_GRADIENT_CPS);
         PlaySound("WriteQuest");
         if (not DQuestDescription:SetAlphaGradient(this.fadingProgress, QUEST_DESCRIPTION_GRADIENT_LENGTH)) then
@@ -855,12 +845,14 @@ end
 function DQuestDetailDeclineButton_OnClick()
     DeclineQuest();
     PlaySound("igQuestCancel");
-    -- Close the quest frame after declining
-    HideUIPanel(DQuestFrame);
 end
 
 -- Function to handle closing the quest frame
 function DQuestFrame_OnHide()
+    -- Notify Dynamic Camera module that quest interaction ended
+    if DynamicCamera and DynamicCamera.OnQuestFinished then
+        DynamicCamera:OnQuestFinished();
+    end
     -- Save position when the frame closes
     DialogUI_SavePosition();
     -- Clear any quest-related data if needed

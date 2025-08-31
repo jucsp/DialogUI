@@ -30,6 +30,9 @@ src\frames\questFrame\quest.frame.xml
 src\frames\gossipFrame\gossip.frame.lua
 src\frames\gossipFrame\gossip.frame.xml
 
+# Dynamic Camera module
+src\modules\dynamicCamera\camera.module.lua
+
 # Configuration frame (loaded last to override basic functions)
 src\frames\configFrame\config.frame.lua
 src\frames\configFrame\config.frame.xml

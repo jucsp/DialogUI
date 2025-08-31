@@ -25,7 +25,7 @@
         <Scripts>
             <OnLoad>
                 this:SetAutoFocus(false);
-                this:SetNumeric(false);  -- Allow decimals
+                this:SetNumeric(false);
             </OnLoad>
             <OnEscapePressed>
                 this:ClearFocus();
@@ -33,28 +33,24 @@
         </Scripts>
     </EditBox>
 
-    <!-- Config Frame -->
+    <!-- Main Config Frame -->
     <Frame name="DConfigFrame" toplevel="true" parent="UIParent" movable="false" enableMouse="true" hidden="true">
         <Size>
-            <AbsDimension x="400" y="500" />
+            <AbsDimension x="480" y="600" />
         </Size>
         <Anchors>
-            <Anchor point="CENTER">
-                <Offset>
-                    <AbsDimension x="0" y="0" />
-                </Offset>
-            </Anchor>
+            <Anchor point="CENTER" />
         </Anchors>
         <Layers>
             <Layer level="BACKGROUND">
                 <Texture file="Interface\AddOns\DialogUI\src\assets\art\parchment\Parchment">
-                    <Size x="400" y="500" />
+                    <Size x="480" y="600" />
                 </Texture>
             </Layer>
             <Layer level="ARTWORK">
-                <FontString name="DConfigFrameTitle" inherits="DQuestTitleFont" text="DialogUI Configuration" justifyH="CENTER">
+                <FontString name="DConfigFrameTitle" inherits="DQuestTitleFont" text="Configuración DialogUI" justifyH="CENTER">
                     <Size>
-                        <AbsDimension x="350" y="25"/>
+                        <AbsDimension x="430" y="25"/>
                     </Size>
                     <Anchors>
                         <Anchor point="TOP">
@@ -64,122 +60,147 @@
                         </Anchor>
                     </Anchors>
                 </FontString>
-                
-                <!-- Information Text -->
-                <FontString name="DConfigInfoText" inherits="DQuestFont" justifyH="LEFT">
-                    <Size>
-                        <AbsDimension x="350" y="120"/>
-                    </Size>
-                    <Anchors>
-                        <Anchor point="TOP" relativeTo="DConfigFrameTitle" relativePoint="BOTTOM">
-                            <Offset>
-                                <AbsDimension x="0" y="-20" />
-                            </Offset>
-                        </Anchor>
-                    </Anchors>
-                </FontString>
-                
-                <!-- Scale Label -->
-                <FontString name="DConfigScaleLabel" inherits="DQuestButtonTitleGossip" text="Window Scale:" justifyH="LEFT">
-                    <Size>
-                        <AbsDimension x="150" y="20" />
-                    </Size>
-                    <Anchors>
-                        <Anchor point="TOP" relativeTo="DConfigInfoText" relativePoint="BOTTOM">
-                            <Offset>
-                                <AbsDimension x="-80" y="-20" />
-                            </Offset>
-                        </Anchor>
-                    </Anchors>
-                </FontString>
-                
-                <!-- Transparency Label -->
-                <FontString name="DConfigAlphaLabel" inherits="DQuestButtonTitleGossip" text="Transparency:" justifyH="LEFT">
-                    <Size>
-                        <AbsDimension x="150" y="20" />
-                    </Size>
-                    <Anchors>
-                        <Anchor point="TOP" relativeTo="DConfigScaleLabel" relativePoint="BOTTOM">
-                            <Offset>
-                                <AbsDimension x="0" y="-35" />
-                            </Offset>
-                        </Anchor>
-                    </Anchors>
-                </FontString>
-                
-                <!-- Font Size Label -->
-                <FontString name="DConfigFontLabel" inherits="DQuestButtonTitleGossip" text="Font Size:" justifyH="LEFT">
-                    <Size>
-                        <AbsDimension x="150" y="20" />
-                    </Size>
-                    <Anchors>
-                        <Anchor point="TOP" relativeTo="DConfigAlphaLabel" relativePoint="BOTTOM">
-                            <Offset>
-                                <AbsDimension x="0" y="-35" />
-                            </Offset>
-                        </Anchor>
-                    </Anchors>
-                </FontString>
             </Layer>
         </Layers>
         <Frames>
-            <!-- Scale EditBox -->
-            <EditBox name="DConfigScaleEditBox" inherits="DConfigEditBoxTemplate">
+            <!-- Scroll Frame for scrollable content -->
+            <ScrollFrame name="DConfigScrollFrame" inherits="UIPanelScrollFrameTemplate">
+                <Size>
+                    <AbsDimension x="430" y="440" />
+                </Size>
                 <Anchors>
-                    <Anchor point="LEFT" relativeTo="DConfigScaleLabel" relativePoint="RIGHT">
+                    <Anchor point="TOP" relativeTo="DConfigFrameTitle" relativePoint="BOTTOM">
                         <Offset>
-                            <AbsDimension x="10" y="0" />
+                            <AbsDimension x="0" y="-20" />
                         </Offset>
                     </Anchor>
                 </Anchors>
-                <Scripts>
-                    <OnEnterPressed>
-                        DConfigScaleEditBox_OnEnterPressed();
-                    </OnEnterPressed>
-                </Scripts>
-            </EditBox>
+                <ScrollChild>
+                    <Frame name="DConfigScrollChild">
+                        <Size>
+                            <AbsDimension x="400" y="1000" />
+                        </Size>
+                        <Layers>
+                            <Layer level="ARTWORK">
+                                <!-- Information Text -->
+                                <FontString name="DConfigInfoText" inherits="DQuestFont" justifyH="LEFT" justifyV="TOP">
+                                    <Size>
+                                        <AbsDimension x="380" y="240"/>
+                                    </Size>
+                                    <Anchors>
+                                        <Anchor point="TOP">
+                                            <Offset>
+                                                <AbsDimension x="0" y="-10" />
+                                            </Offset>
+                                        </Anchor>
+                                    </Anchors>
+                                </FontString>
+                                
+                                <!-- Scale Label -->
+                                <FontString name="DConfigScaleLabel" inherits="DQuestButtonTitleGossip" text="Escala:" justifyH="LEFT">
+                                    <Size>
+                                        <AbsDimension x="345" y="20" />
+                                    </Size>
+                                    <Anchors>
+                                        <Anchor point="TOP" relativeTo="DConfigInfoText" relativePoint="BOTTOM">
+                                            <Offset>
+                                                <AbsDimension x="0" y="-20" />
+                                            </Offset>
+                                        </Anchor>
+                                    </Anchors>
+                                </FontString>
+                                
+                                <!-- Transparency Label -->
+                                <FontString name="DConfigAlphaLabel" inherits="DQuestButtonTitleGossip" text="Transparencia:" justifyH="LEFT">
+                                    <Size>
+                                        <AbsDimension x="345" y="20" />
+                                    </Size>
+                                    <Anchors>
+                                        <Anchor point="TOP" relativeTo="DConfigScaleLabel" relativePoint="BOTTOM">
+                                            <Offset>
+                                                <AbsDimension x="0" y="-35" />
+                                            </Offset>
+                                        </Anchor>
+                                    </Anchors>
+                                </FontString>
+                                
+                                <!-- Font Size Label -->
+                                <FontString name="DConfigFontLabel" inherits="DQuestButtonTitleGossip" text="Tamaño de Fuente:" justifyH="LEFT">
+                                    <Size>
+                                        <AbsDimension x="345" y="20" />
+                                    </Size>
+                                    <Anchors>
+                                        <Anchor point="TOP" relativeTo="DConfigAlphaLabel" relativePoint="BOTTOM">
+                                            <Offset>
+                                                <AbsDimension x="0" y="-35" />
+                                            </Offset>
+                                        </Anchor>
+                                    </Anchors>
+                                </FontString>
+                            </Layer>
+                        </Layers>
+                        <Frames>
+                            <!-- Scale EditBox -->
+                            <EditBox name="DConfigScaleEditBox" inherits="DConfigEditBoxTemplate">
+                                <Anchors>
+                                    <Anchor point="LEFT" relativeTo="DConfigScaleLabel" relativePoint="LEFT">
+                                        <Offset>
+                                            <AbsDimension x="50" y="0" />
+                                        </Offset>
+                                    </Anchor>
+                                </Anchors>
+                                <Scripts>
+                                    <OnEnterPressed>
+                                        DConfigScaleEditBox_OnEnterPressed();
+                                    </OnEnterPressed>
+                                </Scripts>
+                            </EditBox>
 
-            <!-- Transparency EditBox -->
-            <EditBox name="DConfigAlphaEditBox" inherits="DConfigEditBoxTemplate">
-                <Anchors>
-                    <Anchor point="LEFT" relativeTo="DConfigAlphaLabel" relativePoint="RIGHT">
-                        <Offset>
-                            <AbsDimension x="10" y="0" />
-                        </Offset>
-                    </Anchor>
-                </Anchors>
-                <Scripts>
-                    <OnEnterPressed>
-                        DConfigAlphaEditBox_OnEnterPressed();
-                    </OnEnterPressed>
-                </Scripts>
-            </EditBox>
+                            <!-- Transparency EditBox -->
+                            <EditBox name="DConfigAlphaEditBox" inherits="DConfigEditBoxTemplate">
+                                <Anchors>
+                                    <Anchor point="LEFT" relativeTo="DConfigAlphaLabel" relativePoint="LEFT">
+                                        <Offset>
+                                            <AbsDimension x="100" y="0" />
+                                        </Offset>
+                                    </Anchor>
+                                </Anchors>
+                                <Scripts>
+                                    <OnEnterPressed>
+                                        DConfigAlphaEditBox_OnEnterPressed();
+                                    </OnEnterPressed>
+                                </Scripts>
+                            </EditBox>
 
-            <!-- Font Size EditBox -->
-            <EditBox name="DConfigFontEditBox" inherits="DConfigEditBoxTemplate">
-                <Anchors>
-                    <Anchor point="LEFT" relativeTo="DConfigFontLabel" relativePoint="RIGHT">
-                        <Offset>
-                            <AbsDimension x="10" y="0" />
-                        </Offset>
-                    </Anchor>
-                </Anchors>
-                <Scripts>
-                    <OnEnterPressed>
-                        DConfigFontEditBox_OnEnterPressed();
-                    </OnEnterPressed>
-                </Scripts>
-            </EditBox>
-
-            <!-- Reset Button -->
-            <Button name="DConfigResetButton" inherits="DUIPanelButtonTemplate" text="RESET TO DEFAULT">
+                            <!-- Font Size EditBox -->
+                            <EditBox name="DConfigFontEditBox" inherits="DConfigEditBoxTemplate">
+                                <Anchors>
+                                    <Anchor point="LEFT" relativeTo="DConfigFontLabel" relativePoint="LEFT">
+                                        <Offset>
+                                            <AbsDimension x="125" y="0" />
+                                        </Offset>
+                                    </Anchor>
+                                </Anchors>
+                                <Scripts>
+                                    <OnEnterPressed>
+                                        DConfigFontEditBox_OnEnterPressed();
+                                    </OnEnterPressed>
+                                </Scripts>
+                            </EditBox>
+                        </Frames>
+                    </Frame>
+                </ScrollChild>
+            </ScrollFrame>
+            
+            <!-- Fixed buttons outside scroll area -->
+            <Button name="DConfigResetButton" inherits="DUIPanelButtonTemplate" text="RESTABLECER">
                 <Size>
                     <AbsDimension x="180" y="35" />
                 </Size>
                 <Anchors>
-                    <Anchor point="BOTTOM" relativeTo="DConfigFrame" relativePoint="BOTTOM">
+                    <Anchor point="BOTTOM">
                         <Offset>
-                            <AbsDimension x="-90" y="80" />
+                            <AbsDimension x="-90" y="50" />
                         </Offset>
                     </Anchor>
                 </Anchors>
@@ -190,15 +211,14 @@
                 </Scripts>
             </Button>
 
-            <!-- Close Button -->
-            <Button name="DConfigCloseButton" inherits="DUIPanelButtonTemplate" text="CLOSE">
+            <Button name="DConfigCloseButton" inherits="DUIPanelButtonTemplate" text="CERRAR">
                 <Size>
                     <AbsDimension x="100" y="35" />
                 </Size>
                 <Anchors>
-                    <Anchor point="BOTTOM" relativeTo="DConfigFrame" relativePoint="BOTTOM">
+                    <Anchor point="BOTTOM">
                         <Offset>
-                            <AbsDimension x="90" y="80" />
+                            <AbsDimension x="90" y="50" />
                         </Offset>
                     </Anchor>
                 </Anchors>
@@ -208,36 +228,6 @@
                     </OnClick>
                 </Scripts>
             </Button>
-
-            <!-- Info Text -->
-            <Frame name="DConfigInfoFrame">
-                <Size>
-                    <AbsDimension x="350" y="150" />
-                </Size>
-                <Anchors>
-                    <Anchor point="TOP" relativeTo="DConfigFontEditBox" relativePoint="BOTTOM">
-                        <Offset>
-                            <AbsDimension x="0" y="-30" />
-                        </Offset>
-                    </Anchor>
-                </Anchors>
-                <Layers>
-                    <Layer level="OVERLAY">
-                        <FontString name="DConfigInfoText" inherits="DQuestFont" justifyH="LEFT" justifyV="TOP">
-                            <Size>
-                                <AbsDimension x="330" y="140" />
-                            </Size>
-                            <Anchors>
-                                <Anchor point="TOPLEFT">
-                                    <Offset>
-                                        <AbsDimension x="10" y="-5" />
-                                    </Offset>
-                                </Anchor>
-                            </Anchors>
-                        </FontString>
-                    </Layer>
-                </Layers>
-            </Frame>
         </Frames>
         <Scripts>
             <OnLoad>

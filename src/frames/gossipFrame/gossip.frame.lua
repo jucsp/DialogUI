@@ -76,10 +76,18 @@ function DGossipFrame_OnEvent()
         if DialogUI_ApplyAlpha then
             DialogUI_ApplyAlpha();
         end
+        -- Notify Dynamic Camera module
+        if DynamicCamera and DynamicCamera.OnGossipShow then
+            DynamicCamera:OnGossipShow();
+        end
         -- Enable key capture when gossip frame is shown
         DGossipKeyFrame:EnableKeyboard(true)
     elseif (event == "GOSSIP_CLOSED") then
         HideUIPanel(DGossipFrame);
+        -- Notify Dynamic Camera module
+        if DynamicCamera and DynamicCamera.OnGossipClosed then
+            DynamicCamera:OnGossipClosed();
+        end
         -- Disable key capture when gossip frame is closed
         DGossipKeyFrame:EnableKeyboard(false)
     end
