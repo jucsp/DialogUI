@@ -71,7 +71,7 @@ This addon was inspired by [DialogueUI](https://www.curseforge.com/wow/addons/di
 This is an **enhanced fork** of the original [DialogUI by Jslquintero](https://github.com/Jslquintero/DialogUI). The original author created an excellent foundation for learning WoW addon development. This fork aims to contribute new features and improvements back to the community while maintaining the beautiful parchment aesthetic that makes DialogUI special.
 
 **Original Author**: [Jslquintero](https://github.com/Jslquintero)  
-**Fork Maintainer**: [Your GitHub Username]  
+**Fork Maintainer**: [Kasper]  
 **Original Repository**: https://github.com/Jslquintero/DialogUI
 
 ## 🐛 Reporting Issues
